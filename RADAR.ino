@@ -1,56 +1,49 @@
 #include <Servo.h>
 
+Servo myServo;  // Servo object
 const int trigPin = 10;
 const int echoPin = 11;
+
 long duration;
 int distance;
-Servo myServo;
 
 void setup() {
+  Serial.begin(9600);
+  myServo.attach(9); // Servo signal connected to pin 9
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
-  Serial.begin(9600);
-  myServo.attach(12);
-  pinMode(13, OUTPUT);
-  pinMode(8, OUTPUT);
 }
 
 void loop() {
-  for (int i = 15; i <= 165; i++) {
-    myServo.write(i);
-    delay(30);
-    distance = calculateDistance();
-    Serial.print(i);
+  // Sweep from 0° to 180°
+  for (int angle = 0; angle <= 180; angle++) {
+    myServo.write(angle);
+    delay(15);
+    distance = getDistance();
+    Serial.print(angle);
     Serial.print(",");
-    Serial.print(distance);
-    Serial.print(".");
+    Serial.println(distance);
   }
 
-  for (int i = 165; i > 15; i--) {
-    myServo.write(i);
-    delay(30);
-    distance = calculateDistance();
-    Serial.print(i);
+  // Sweep back from 180° to 0°
+  for (int angle = 180; angle >= 0; angle--) {
+    myServo.write(angle);
+    delay(15);
+    distance = getDistance();
+    Serial.print(angle);
     Serial.print(",");
-    Serial.print(distance);
-    Serial.print(".");
+    Serial.println(distance);
   }
 }
 
-int calculateDistance() {
+int getDistance() {
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
   digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(trigPin, LOW);
+
   duration = pulseIn(echoPin, HIGH);
-  distance = duration * 0.034 / 2;
-  if (distance > 40 || distance == 90) {
-    digitalWrite(13, 1);
-    digitalWrite(8, 0);
-  } else {
-    digitalWrite(13, 0);
-    digitalWrite(8, 1);
-  }
+  int distance = duration * 0.034 / 2; // Convert to cm
   return distance;
 }
